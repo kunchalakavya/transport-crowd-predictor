@@ -35,7 +35,7 @@ st.set_page_config(
 )
 
 # Backend API URL — change this later when we deploy online
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://transport-crowd-api.onrender.com"
 
 
 # ─────────────────────────────────────────────────────
