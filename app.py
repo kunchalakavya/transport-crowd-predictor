@@ -108,7 +108,6 @@ predict_button = st.sidebar.button("🔮 Predict Crowd Level", type="primary", u
 # ─────────────────────────────────────────────────────
 
 def get_prediction(route, stop, hour, dow, weather, holiday, event, vehicle):
-    """Sends a request to our FastAPI backend and returns the JSON response."""
     payload = {
         "route_number": route,
         "stop_name": stop,
@@ -120,11 +119,13 @@ def get_prediction(route, stop, hour, dow, weather, holiday, event, vehicle):
         "vehicle_type": vehicle
     }
     try:
-        response = requests.post(f"{API_URL}/predict", json=payload, timeout=10)
+        response = requests.post(f"{API_URL}/predict", json=payload, timeout=70)
         response.raise_for_status()
         return response.json(), None
+    except requests.exceptions.ReadTimeout:
+        return None, "⏳ The backend is waking up from sleep (free hosting tier). Please click Predict again in a few seconds!"
     except requests.exceptions.ConnectionError:
-        return None, "⚠️ Cannot connect to backend. Make sure main.py (uvicorn) is running!"
+        return None, "⚠️ Cannot connect to backend. It may be restarting — please try again shortly."
     except Exception as e:
         return None, f"⚠️ Error: {str(e)}"
 
@@ -139,7 +140,7 @@ def crowd_color(level):
 # ─────────────────────────────────────────────────────
 
 if predict_button:
-    with st.spinner("Analyzing route conditions..."):
+    with st.spinner("Analyzing route conditions... (first request may take up to a minute if the server was idle)"):
         result, error = get_prediction(
             selected_route, selected_stop, selected_hour, day_index,
             selected_weather, is_holiday, selected_event, selected_vehicle
